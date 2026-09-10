@@ -15,13 +15,13 @@ This document breaks down the implementation of the `rag-project` into logical p
 ## Phase 2: Database, ORM & Basic Auth Setup
 *Focus: Establishing the persistence layer (Relational + Vector) and basic authentication*
 
-- [ ] Initialize Supabase project (PostgreSQL + pgvector + Auth)
-- [ ] Configure database connection in FastAPI (`DATABASE_URL`, `SUPABASE_URL`)
-- [ ] Setup SQLAlchemy ORM engine and session management
-- [ ] Create base SQLAlchemy models
-- [ ] Define relational models (Users, Documents, Document Metadata, Conversations, Messages)
-- [ ] Create vector repository interface for pgvector
-- [ ] Setup database migrations (e.g., using Alembic)
+- [x] Initialize Supabase project (PostgreSQL + pgvector + Auth)
+- [x] Configure database connection in FastAPI (`DATABASE_URL`, `SUPABASE_URL`)
+- [x] Setup SQLAlchemy ORM engine and session management
+- [x] Create base SQLAlchemy models
+- [x] Define relational models (Users, Documents, Document Metadata, Conversations, Messages)
+- [x] Create vector repository interface for pgvector
+- [x] Setup database migrations (e.g., using Alembic)
 - [ ] Implement basic authentication flow
 
 ---
