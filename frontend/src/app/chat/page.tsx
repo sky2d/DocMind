@@ -179,14 +179,14 @@ export default function ChatPage() {
             <form onSubmit={handleSubmit} className="relative flex items-center">
               <input
                 className="w-full bg-accent/40 border border-border rounded-full pl-6 pr-14 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm shadow-sm"
-                value={input}
+                value={input || ""}
                 placeholder="Ask about your documents..."
                 onChange={handleInputChange}
                 disabled={isLoading}
               />
               <button 
                 type="submit" 
-                disabled={isLoading || !input.trim()}
+                disabled={isLoading || !(input || "").trim()}
                 className="absolute right-2 h-10 w-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100 shadow-md"
               >
                 <Send className="h-4 w-4 ml-0.5" />
