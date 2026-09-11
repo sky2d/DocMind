@@ -53,11 +53,11 @@ This document breaks down the implementation of the `rag-project` into logical p
 ## Phase 5: Document Ingestion & Chunking
 *Focus: Processing raw documents into chunks*
 
-- [ ] Implement document parser service (e.g., PDF/Text extraction)
-- [ ] Implement text cleaning utilities
-- [ ] Implement **Recursive Text Chunking** service (~500 tokens, ~50 token overlap)
-- [ ] Write unit tests for chunking service (must be independently testable)
-- [ ] Create API endpoint for document upload and ingestion triggering
+- [x] Implement document parser service (e.g., PDF/Text extraction)
+- [x] Implement text cleaning utilities
+- [x] Implement **Recursive Text Chunking** service (~500 tokens, ~50 token overlap)
+- [x] Write unit tests for chunking service (must be independently testable)
+- [x] Create API endpoint for document upload and ingestion triggering
 
 ---
 
