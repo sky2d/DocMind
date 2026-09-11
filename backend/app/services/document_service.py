@@ -48,6 +48,7 @@ class DocumentService:
             # 6. Mark as completed (Saving to DB/Vector happens in Phase 6)
             doc.status = "completed"
             await self.db.commit()
+            await self.db.refresh(doc)
             
         except Exception as e:
             doc.status = "failed"
