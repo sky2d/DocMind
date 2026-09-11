@@ -22,7 +22,7 @@ This document breaks down the implementation of the `rag-project` into logical p
 - [x] Define relational models (Users, Documents, Document Metadata, Conversations, Messages)
 - [x] Create vector repository interface for pgvector
 - [x] Setup database migrations (e.g., using Alembic)
-- [ ] Implement basic authentication flow
+- [x] Implement basic authentication flow
 
 ---
 
