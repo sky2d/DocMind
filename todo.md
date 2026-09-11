@@ -75,10 +75,11 @@ This document breaks down the implementation of the `rag-project` into logical p
 ## Phase 7: Retrieval & RAG Generation
 *Focus: Querying vectors and interacting with LLMs*
 
-- [ ] Implement Vector Retrieval Service (similarity search/nearest-neighbor using pgvector)
-- [ ] Implement LLM Provider Abstraction (support local/external APIs)
-- [ ] Implement Prompt Construction Logic (Question + Retrieved Chunks)
-- [ ] Implement Generation Service (LLM orchestration)
+- [x] Implement `pgvector` similarity search in vector repository
+- [x] Connect Chat API to vector retrieval
+- [x] Connect Chat API to LLM provider (e.g., OpenAI or alternative)
+- [x] Implement prompt construction logic (injecting chunks as context)
+- [x] Setup Streaming Responses for the frontend Vercel AI SDK (LLM orchestration)
 - [ ] Create API endpoint for chat/querying (implement Server-Sent Events for streaming)
 - [ ] Implement background tasks to save messages and metadata (JSONB) to Supabase
 - [ ] Write unit tests for retrieval and generation logic

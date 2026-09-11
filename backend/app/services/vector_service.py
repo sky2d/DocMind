@@ -28,3 +28,20 @@ class VectorService:
         # Bulk insert the chunks
         self.db.add_all(document_chunks)
         await self.db.commit()
+
+    async def similarity_search(self, document_ids: List[uuid.UUID], query_embedding: List[float], limit: int = 5) -> List[DocumentChunk]:
+        """
+        Uses pgvector's cosine distance operator (<->) to find the most relevant chunks.
+        Filters by document_ids to only search within the allowed documents.
+        """
+        from sqlalchemy import select
+        
+        stmt = (
+            select(DocumentChunk)
+            .where(DocumentChunk.document_id.in_(document_ids))
+            .order_by(DocumentChunk.embedding.cosine_distance(query_embedding))
+            .limit(limit)
+        )
+        
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())

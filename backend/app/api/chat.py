@@ -1,14 +1,16 @@
 from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 import uuid
 
 from app.db.session import get_db
-from app.schemas.chat import ChatRequest, ChatResponse
+from app.schemas.chat import ChatRequest
 from app.core.security import get_current_user
+from app.services.chat_service import ChatService
 
 router = APIRouter()
 
-@router.post("/", response_model=ChatResponse)
+@router.post("/")
 async def chat(
     request: ChatRequest,
     db: AsyncSession = Depends(get_db),
@@ -16,10 +18,9 @@ async def chat(
 ):
     user_id = uuid.UUID(user_id_str)
     
-    # In Phase 6 (RAG Orchestration), this will call a ChatService
-    # For now, we return a mocked response matching the Vercel AI SDK structure.
+    chat_service = ChatService(db)
     
-    return ChatResponse(
-        answer="This is a mocked response from the backend. Real RAG logic will be implemented in Phase 6.",
-        sources=[]
+    return StreamingResponse(
+        chat_service.generate_response_stream(request),
+        media_type="text/event-stream"
     )
