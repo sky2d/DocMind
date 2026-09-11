@@ -8,10 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import uuid
 
 class ChatService:
-    def __init__(self, db: AsyncSession):
+    def __init__(self, db: AsyncSession, user_id: uuid.UUID):
         self.db = db
+        self.user_id = user_id
         # Initialize Groq client
         self.client = AsyncGroq(api_key=settings.GROQ_API_KEY)
+        self.full_response_text = ""
 
     async def _get_context(self, document_ids: list[uuid.UUID], query: str):
         # 1. Embed the query
@@ -65,7 +67,46 @@ class ChatService:
         async for chunk in stream:
             content = chunk.choices[0].delta.content
             if content:
+                self.full_response_text += content
                 # Format exactly as Vercel AI SDK experimental `streamText` expects.
                 # Format: 0:"content"\n
                 encoded = json.dumps(content)
                 yield f'0:{encoded}\n'
+
+    async def save_conversation(self, request: ChatRequest):
+        from app.models.chat import Conversation, Message
+        from sqlalchemy import select
+        import uuid
+        
+        conv_id = request.conversation_id or uuid.uuid4()
+        
+        # Check if conversation exists
+        result = await self.db.execute(select(Conversation).where(Conversation.id == conv_id))
+        conv = result.scalar_one_or_none()
+        
+        if not conv:
+            conv = Conversation(
+                id=conv_id, 
+                user_id=self.user_id, 
+                title=request.messages[-1].content[:100]
+            )
+            self.db.add(conv)
+            
+        # Add user message
+        user_msg = Message(
+            conversation_id=conv_id,
+            role="user",
+            content=request.messages[-1].content
+        )
+        self.db.add(user_msg)
+        
+        # Add assistant message
+        assistant_msg = Message(
+            conversation_id=conv_id,
+            role="assistant",
+            content=self.full_response_text,
+            metadata_={} # Can store retrieved chunk IDs here in future
+        )
+        self.db.add(assistant_msg)
+        
+        await self.db.commit()

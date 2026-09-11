@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
+from starlette.background import BackgroundTask
 from sqlalchemy.ext.asyncio import AsyncSession
 import uuid
 
@@ -18,9 +19,10 @@ async def chat(
 ):
     user_id = uuid.UUID(user_id_str)
     
-    chat_service = ChatService(db)
+    chat_service = ChatService(db, user_id)
     
     return StreamingResponse(
         chat_service.generate_response_stream(request),
-        media_type="text/event-stream"
+        media_type="text/event-stream",
+        background=BackgroundTask(chat_service.save_conversation, request)
     )

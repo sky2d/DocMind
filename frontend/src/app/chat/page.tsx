@@ -13,10 +13,21 @@ export default function ChatPage() {
   // Vercel AI SDK useChat
   // By default, this will hit /api/chat. We'll set it to hit our FastAPI backend.
   // In a real implementation, you might need a Next.js API route proxy to handle streaming properly if FastAPI's format differs.
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+  const [conversationId, setConversationId] = useState<string>("");
+  
+  useEffect(() => {
+    // Generate a random UUID for the conversation on mount if none exists
+    setConversationId(crypto.randomUUID());
+  }, []);
+
+  const { messages, input, setInput, handleSubmit, isLoading } = useChat({
     api: process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/chat` : "http://localhost:8000/api/chat",
     headers: {
       Authorization: `Bearer ${typeof window !== 'undefined' ? localStorage.getItem("token") : ""}`
+    },
+    body: {
+      conversation_id: conversationId,
+      // If we had a document selected, we would pass its ID here. For now, we omit or hardcode.
     }
   });
 
@@ -181,7 +192,7 @@ export default function ChatPage() {
                 className="w-full bg-accent/40 border border-border rounded-full pl-6 pr-14 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm shadow-sm"
                 value={input || ""}
                 placeholder="Ask about your documents..."
-                onChange={handleInputChange}
+                onChange={(e) => setInput(e.target.value)}
                 disabled={isLoading}
               />
               <button 
