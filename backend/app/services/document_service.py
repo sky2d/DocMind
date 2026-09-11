@@ -7,6 +7,8 @@ from app.core.exceptions import NotFoundError, DocumentProcessingError
 from app.services.parser_service import PDFParserService
 from app.services.cleaner_service import TextCleanerService
 from app.services.chunking_service import ChunkingService
+from app.services.embedding_service import EmbeddingService
+from app.services.vector_service import VectorService
 
 class DocumentService:
     def __init__(self, db: AsyncSession):
@@ -40,12 +42,16 @@ class DocumentService:
             chunker = ChunkingService(chunk_size=500, chunk_overlap=50)
             chunks = chunker.split_text(cleaned_text)
             
-            # Print chunks temporarily to verify Phase 5
-            print(f"--- Extracted {len(chunks)} chunks from {file.filename} ---")
-            for i, c in enumerate(chunks[:3]): # print first 3
-                print(f"Chunk {i}: {c[:100]}...")
+            # 6. Generate Embeddings
+            print(f"Generating embeddings for {len(chunks)} chunks...")
+            embeddings = EmbeddingService.generate_embeddings(chunks)
             
-            # 6. Mark as completed (Saving to DB/Vector happens in Phase 6)
+            # 7. Store Chunks & Vectors in DB
+            print("Storing vectors in pgvector...")
+            vector_service = VectorService(self.db)
+            await vector_service.store_chunks(doc.id, chunks, embeddings)
+            
+            # 8. Mark as completed
             doc.status = "completed"
             await self.db.commit()
             await self.db.refresh(doc)
