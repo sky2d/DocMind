@@ -30,7 +30,7 @@ export default function Home() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[120px] pointer-events-none -z-10" />
           
           <h1 className="text-5xl md:text-7xl font-bold tracking-tighter max-w-4xl bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/60">
-            Chat with your documents in <span className="text-transparent bg-gradient-to-r from-primary to-blue-400">real-time.</span>
+            Chat with your documents in <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-400">real-time.</span>
           </h1>
           <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl">
             DocMind securely ingests your PDFs and uses advanced RAG technology to give you instant, accurate answers grounded in your own data.
