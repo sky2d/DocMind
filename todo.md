@@ -15,27 +15,27 @@ This document breaks down the implementation of the `rag-project` into logical p
 ## Phase 2: Database, ORM & Basic Auth Setup
 *Focus: Establishing the persistence layer (Relational + Vector) and basic authentication*
 
-- [ ] Initialize Supabase project (PostgreSQL + pgvector + Auth)
-- [ ] Configure database connection in FastAPI (`DATABASE_URL`, `SUPABASE_URL`)
-- [ ] Setup SQLAlchemy ORM engine and session management
-- [ ] Create base SQLAlchemy models
-- [ ] Define relational models (Users, Documents, Document Metadata, Conversations, Messages)
-- [ ] Create vector repository interface for pgvector
-- [ ] Setup database migrations (e.g., using Alembic)
-- [ ] Implement basic authentication flow
+- [x] Initialize Supabase project (PostgreSQL + pgvector + Auth)
+- [x] Configure database connection in FastAPI (`DATABASE_URL`, `SUPABASE_URL`)
+- [x] Setup SQLAlchemy ORM engine and session management
+- [x] Create base SQLAlchemy models
+- [x] Define relational models (Users, Documents, Document Metadata, Conversations, Messages)
+- [x] Create vector repository interface for pgvector
+- [x] Setup database migrations (e.g., using Alembic)
+- [x] Implement basic authentication flow
 
 ---
 
 ## Phase 3: Frontend Development (Next.js)
 *Focus: User Interface and basic connection*
 
-- [ ] Initialize Next.js project with TypeScript and Tailwind CSS
-- [ ] Setup API client to communicate with FastAPI
-- [ ] Implement Authentication UI (Login/Register)
-- [ ] Build Document Upload Interface
-- [ ] Build Chat Interface using Vercel AI SDK (`useChat` for streaming)
-- [ ] Build UI to display Answers + Sources (optimistic updates)
-- [ ] Ensure strict separation of concerns (no RAG logic in frontend)
+- [x] Initialize Next.js project with TypeScript and Tailwind CSS
+- [x] Setup API client to communicate with FastAPI
+- [x] Implement Authentication UI (Login/Register)
+- [x] Build Document Upload Interface
+- [x] Build Chat Interface using Vercel AI SDK (`useChat` for streaming)
+- [x] Build UI to display Answers + Sources (optimistic updates)
+- [x] Ensure strict separation of concerns (no RAG logic in frontend)
 
 ---
 
