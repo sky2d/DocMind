@@ -42,11 +42,11 @@ This document breaks down the implementation of the `rag-project` into logical p
 ## Phase 4: Core API & Backend Foundation
 *Focus: FastAPI structure, routing, and error handling*
 
-- [ ] Setup FastAPI application instance and basic middleware (CORS)
-- [ ] Implement request/response validation schemas (Pydantic)
-- [ ] Define HTTP error handling and custom exceptions
-- [ ] Scaffold API route groups (e.g., `/api/documents`, `/api/chat`, `/api/auth`)
-- [ ] Implement base service layer abstractions
+- [x] Setup FastAPI application instance and basic middleware (CORS)
+- [x] Implement request/response validation schemas (Pydantic)
+- [x] Define HTTP error handling and custom exceptions
+- [x] Scaffold API route groups (e.g., `/api/documents`, `/api/chat`, `/api/auth`)
+- [x] Implement base service layer abstractions
 
 ---
 
