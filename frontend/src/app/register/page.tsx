@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock, Mail, ArrowRight, Loader2, User } from "lucide-react";
@@ -14,6 +14,12 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      router.push("/dashboard");
+    }
+  }, [router]);
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -26,6 +32,7 @@ export default function RegisterPage() {
       // 2. Automatically log them in
       const loginResponse = await apiClient.post("/auth/login", { email, password });
       localStorage.setItem("token", loginResponse.data.access_token);
+      document.cookie = `token=${loginResponse.data.access_token}; path=/; max-age=86400`;
       
       // 3. Redirect to dashboard
       router.push("/dashboard");

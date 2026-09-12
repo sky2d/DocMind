@@ -8,6 +8,7 @@ class Message(BaseModel):
 class ChatRequest(BaseModel):
     messages: List[Message]
     document_ids: Optional[List[UUID4]] = None
+    conversation_id: Optional[UUID4] = None
 
 class SourceNode(BaseModel):
     document_id: UUID4

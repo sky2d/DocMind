@@ -64,24 +64,23 @@ This document breaks down the implementation of the `rag-project` into logical p
 ## Phase 6: Embeddings & Vector Storage
 *Focus: Generating embeddings and storing them in pgvector*
 
-- [ ] Implement Embedding Service using `sentence-transformers` (`all-MiniLM-L6-v2`, 384 dim)
-- [x] Implement embedding service (e.g., HuggingFace `all-MiniLM-L6-v2`)
+- [x] Implement Embedding Service using `sentence-transformers` (`all-MiniLM-L6-v2`, 384 dim)
 - [x] Connect ingestion pipeline to embedding service
 - [x] Store chunks and embeddings into `document_chunks` table (pgvector)
-- [x] Verify vectors are properly inserted and queryableration
+- [x] Verify vectors are properly inserted and queryable
 
 ---
 
 ## Phase 7: Retrieval & RAG Generation
 *Focus: Querying vectors and interacting with LLMs*
 
-- [ ] Implement Vector Retrieval Service (similarity search/nearest-neighbor using pgvector)
-- [ ] Implement LLM Provider Abstraction (support local/external APIs)
-- [ ] Implement Prompt Construction Logic (Question + Retrieved Chunks)
-- [ ] Implement Generation Service (LLM orchestration)
-- [ ] Create API endpoint for chat/querying (implement Server-Sent Events for streaming)
-- [ ] Implement background tasks to save messages and metadata (JSONB) to Supabase
-- [ ] Write unit tests for retrieval and generation logic
+- [x] Implement `pgvector` similarity search in vector repository
+- [x] Connect Chat API to vector retrieval
+- [x] Connect Chat API to LLM provider (Groq)
+- [x] Implement prompt construction logic (injecting chunks as context)
+- [x] Create API endpoint for chat/querying and setup Streaming Responses (Server-Sent Events) for Vercel AI SDK
+- [x] Implement background tasks to save messages and metadata (JSONB) to Supabase
+- [x] Write unit tests for retrieval and generation logic
 
 ---
 

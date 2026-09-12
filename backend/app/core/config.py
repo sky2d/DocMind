@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "super-secret-key-for-local-dev-only"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
+    
+    # LLM Provider
+    GROQ_API_KEY: Optional[str] = None
 
     model_config = SettingsConfigDict(env_file=("../.env", ".env"), case_sensitive=True, extra="ignore")
 

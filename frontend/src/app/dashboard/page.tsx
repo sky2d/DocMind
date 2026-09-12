@@ -143,9 +143,14 @@ export default function DashboardPage() {
                   <p className="text-sm text-red-500 bg-red-500/10 px-4 py-2 rounded-lg">{errorMessage}</p>
                 )}
                 {uploadStatus === "success" && (
-                  <p className="text-sm text-green-500 flex items-center gap-2 bg-green-500/10 px-4 py-2 rounded-lg">
-                    <CheckCircle2 className="h-4 w-4" /> Upload successful! Document is being processed.
-                  </p>
+                  <div className="flex flex-col gap-3 items-center">
+                    <p className="text-sm text-green-500 flex items-center gap-2 bg-green-500/10 px-4 py-2 rounded-lg">
+                      <CheckCircle2 className="h-4 w-4" /> Upload successful! Document is being processed.
+                    </p>
+                    <Link href="/chat" className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
+                      Ask questions about this doc in chat <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </div>
                 )}
 
                 <div className="flex gap-4 mt-4">
