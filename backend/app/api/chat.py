@@ -11,7 +11,7 @@ from app.services.chat_service import ChatService
 
 router = APIRouter()
 
-@router.post("/")
+@router.post("")
 async def chat(
     request: ChatRequest,
     db: AsyncSession = Depends(get_db),
@@ -23,6 +23,6 @@ async def chat(
     
     return StreamingResponse(
         chat_service.generate_response_stream(request),
-        media_type="text/event-stream",
+        media_type="text/plain; charset=utf-8",
         background=BackgroundTask(chat_service.save_conversation, request)
     )

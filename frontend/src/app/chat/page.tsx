@@ -3,33 +3,160 @@
 import { useState, useRef, useEffect } from "react";
 import { useChat } from "@ai-sdk/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Bot, User, Menu, FileText, ArrowLeft, Loader2, Sparkles } from "lucide-react";
+import { Send, Bot, User, Menu, FileText, ArrowLeft, Loader2, Sparkles, X, ChevronDown, Check } from "lucide-react";
 import Link from "next/link";
 
 export default function ChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Vercel AI SDK useChat
-  // By default, this will hit /api/chat. We'll set it to hit our FastAPI backend.
-  // In a real implementation, you might need a Next.js API route proxy to handle streaming properly if FastAPI's format differs.
   const [conversationId, setConversationId] = useState<string>("");
+  const [customInput, setCustomInput] = useState("");
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [userDocuments, setUserDocuments] = useState<any[]>([]);
+  const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
+  const [showDocSelector, setShowDocSelector] = useState(false);
   
   useEffect(() => {
-    // Generate a random UUID for the conversation on mount if none exists
     setConversationId(crypto.randomUUID());
+    fetchConversations();
+    fetchUserDocuments();
   }, []);
 
-  const { messages, input, setInput, handleSubmit, isLoading } = useChat({
-    api: process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/chat` : "http://localhost:8000/api/chat",
-    headers: {
-      Authorization: `Bearer ${typeof window !== 'undefined' ? localStorage.getItem("token") : ""}`
-    },
-    body: {
-      conversation_id: conversationId,
-      // If we had a document selected, we would pass its ID here. For now, we omit or hardcode.
+  const fetchUserDocuments = async () => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem("token") : "";
+      const url = process.env.NEXT_PUBLIC_API_URL 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/documents/` 
+        : "http://localhost:8000/api/documents/";
+        
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUserDocuments(data.documents || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch documents", error);
     }
-  });
+  };
+
+  const toggleDocSelection = (docId: string) => {
+    setSelectedDocIds(prev => 
+      prev.includes(docId) ? prev.filter(id => id !== docId) : [...prev, docId]
+    );
+  };
+
+  const fetchConversations = async () => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem("token") : "";
+      const url = process.env.NEXT_PUBLIC_API_URL 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/conversations` 
+        : "http://localhost:8000/api/conversations";
+        
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setConversations(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch conversations", error);
+    }
+  };
+
+  const loadConversation = async (id: string, title: string) => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem("token") : "";
+      const url = process.env.NEXT_PUBLIC_API_URL 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/conversations/${id}` 
+        : `http://localhost:8000/api/conversations/${id}`;
+        
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const msgs = await response.json();
+        setMessages(msgs.map((m: any) => ({
+          id: m.id,
+          role: m.role,
+          content: m.content
+        })));
+        setConversationId(id);
+        if (window.innerWidth < 768) setSidebarOpen(false);
+      }
+    } catch (error) {
+      console.error("Failed to load conversation", error);
+    }
+  };
+
+  const [messages, setMessages] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleCustomSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customInput.trim() || isLoading) return;
+    
+    const userMessage = { id: crypto.randomUUID(), role: 'user', content: customInput };
+    setMessages(prev => [...prev, userMessage]);
+    setCustomInput("");
+    setIsLoading(true);
+    
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem("token") : "";
+      const url = process.env.NEXT_PUBLIC_API_URL 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/chat` 
+        : "http://localhost:8000/api/chat";
+        
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage].map(m => ({ role: m.role, content: m.content })),
+          conversation_id: conversationId,
+          document_ids: selectedDocIds.length > 0 ? selectedDocIds : undefined,
+        })
+      });
+
+      if (!response.ok) throw new Error("Failed to send message");
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      
+      const aiMessageId = crypto.randomUUID();
+      let aiContent = "";
+      
+      setMessages(prev => [...prev, { id: aiMessageId, role: 'assistant', content: "" }]);
+
+      while (reader) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value, { stream: true });
+        aiContent += chunk;
+        
+        setMessages(prev => prev.map(m => m.id === aiMessageId ? { ...m, content: aiContent } : m));
+      }
+      
+      // Refresh sidebar after stream finishes
+      fetchConversations();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleNewChat = () => {
+    setMessages([]);
+    setConversationId(crypto.randomUUID());
+    if (window.innerWidth < 768) setSidebarOpen(false);
+  };
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -76,20 +203,32 @@ export default function ChatPage() {
             <div className="p-4 flex-1 overflow-y-auto">
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Recent Conversations</h3>
               <div className="flex flex-col gap-2">
-                {/* Mock conversation list */}
-                <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 cursor-pointer">
-                  <p className="text-sm font-medium truncate text-primary">Analysis of Q3 Report</p>
-                  <p className="text-xs text-muted-foreground mt-1">Today</p>
-                </div>
-                <div className="p-3 rounded-xl hover:bg-accent cursor-pointer transition-colors">
-                  <p className="text-sm font-medium truncate">Employee Handbook Questions</p>
-                  <p className="text-xs text-muted-foreground mt-1">Yesterday</p>
-                </div>
+                {conversations.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">No conversations yet.</p>
+                ) : (
+                  conversations.map((conv) => (
+                    <div 
+                      key={conv.id}
+                      onClick={() => loadConversation(conv.id, conv.title)}
+                      className={`p-3 rounded-xl cursor-pointer transition-colors ${conversationId === conv.id ? 'bg-primary/10 border border-primary/20' : 'hover:bg-accent'}`}
+                    >
+                      <p className={`text-sm font-medium truncate ${conversationId === conv.id ? 'text-primary' : ''}`}>
+                        {conv.title || "New Chat"}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(conv.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
             
             <div className="p-4 border-t border-border">
-              <button className="w-full py-2.5 rounded-xl border border-border hover:bg-accent hover:text-primary transition-colors text-sm font-medium flex items-center justify-center gap-2">
+              <button 
+                onClick={handleNewChat}
+                className="w-full py-2.5 rounded-xl border border-border hover:bg-accent hover:text-primary transition-colors text-sm font-medium flex items-center justify-center gap-2"
+              >
                 <Sparkles className="h-4 w-4" /> New Chat
               </button>
             </div>
@@ -108,7 +247,9 @@ export default function ChatPage() {
             >
               <Menu className="h-5 w-5" />
             </button>
-            <h2 className="font-semibold truncate">Analysis of Q3 Report</h2>
+            <h2 className="font-semibold truncate">
+              {messages.length > 0 ? (messages.find(m => m.role === 'user')?.content?.slice(0, 40) || 'Chat') : 'New Chat'}
+            </h2>
           </div>
         </header>
 
@@ -144,20 +285,6 @@ export default function ChatPage() {
                       : 'glass-panel rounded-tl-sm leading-relaxed text-sm md:text-base'
                   }`}>
                     {m.content}
-                    
-                    {/* Mock source visualization for RAG */}
-                    {m.role !== 'user' && (
-                      <div className="mt-4 pt-4 border-t border-border/50">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
-                          <FileText className="h-3 w-3" /> Sources
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          <span className="text-xs bg-accent px-2 py-1 rounded-md border border-border/50 cursor-pointer hover:border-primary/50 transition-colors">
-                            q3-financials.pdf (p. 4)
-                          </span>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {m.role === 'user' && (
@@ -187,17 +314,79 @@ export default function ChatPage() {
         {/* Input Area */}
         <div className="p-4 bg-background/80 backdrop-blur-md border-t border-border sticky bottom-0">
           <div className="max-w-3xl mx-auto relative">
-            <form onSubmit={handleSubmit} className="relative flex items-center">
+            {/* Document Selector */}
+            <div className="mb-3">
+              <button
+                type="button"
+                onClick={() => setShowDocSelector(!showDocSelector)}
+                className="flex items-center gap-2 text-xs text-muted-foreground hover:text-primary transition-colors px-3 py-1.5 rounded-lg hover:bg-accent/50"
+              >
+                <FileText className="h-3.5 w-3.5" />
+                {selectedDocIds.length === 0
+                  ? 'All Documents'
+                  : `${selectedDocIds.length} document${selectedDocIds.length > 1 ? 's' : ''} selected`}
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showDocSelector ? 'rotate-180' : ''}`} />
+              </button>
+              
+              <AnimatePresence>
+                {showDocSelector && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: 'auto' }}
+                    exit={{ opacity: 0, y: -5, height: 0 }}
+                    className="mt-2 flex flex-wrap gap-2 overflow-hidden"
+                  >
+                    {userDocuments.length === 0 ? (
+                      <p className="text-xs text-muted-foreground italic px-1">No documents uploaded yet.</p>
+                    ) : (
+                      userDocuments.map((doc: any) => {
+                        const isSelected = selectedDocIds.includes(doc.id);
+                        return (
+                          <button
+                            key={doc.id}
+                            type="button"
+                            onClick={() => toggleDocSelection(doc.id)}
+                            className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all ${
+                              isSelected
+                                ? 'bg-primary/15 border-primary/40 text-primary'
+                                : 'bg-accent/40 border-border hover:border-primary/30 text-muted-foreground hover:text-foreground'
+                            }`}
+                          >
+                            {isSelected && <Check className="h-3 w-3" />}
+                            <FileText className="h-3 w-3" />
+                            <span className="max-w-[150px] truncate">{doc.filename}</span>
+                            {isSelected && (
+                              <X className="h-3 w-3 ml-0.5 hover:text-destructive" />
+                            )}
+                          </button>
+                        );
+                      })
+                    )}
+                    {selectedDocIds.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedDocIds([])}
+                        className="text-xs text-muted-foreground hover:text-primary transition-colors px-2 py-1.5 underline"
+                      >
+                        Clear all
+                      </button>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <form onSubmit={handleCustomSubmit} className="relative flex items-center">
               <input
                 className="w-full bg-accent/40 border border-border rounded-full pl-6 pr-14 py-4 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm shadow-sm"
-                value={input || ""}
-                placeholder="Ask about your documents..."
-                onChange={(e) => setInput(e.target.value)}
+                value={customInput}
+                placeholder={selectedDocIds.length > 0 ? `Ask about ${selectedDocIds.length} selected document${selectedDocIds.length > 1 ? 's' : ''}...` : 'Ask about your documents...'}
+                onChange={(e) => setCustomInput(e.target.value)}
                 disabled={isLoading}
               />
               <button 
                 type="submit" 
-                disabled={isLoading || !(input || "").trim()}
+                disabled={isLoading || !customInput.trim()}
                 className="absolute right-2 h-10 w-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100 shadow-md"
               >
                 <Send className="h-4 w-4 ml-0.5" />

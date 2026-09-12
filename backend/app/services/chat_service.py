@@ -15,7 +15,17 @@ class ChatService:
         self.client = AsyncGroq(api_key=settings.GROQ_API_KEY)
         self.full_response_text = ""
 
-    async def _get_context(self, document_ids: list[uuid.UUID], query: str):
+    async def _get_context(self, document_ids: list[uuid.UUID] | None, query: str):
+        if not document_ids:
+            # Fetch all documents for this user
+            from sqlalchemy import select
+            from app.models.document import Document
+            result = await self.db.execute(select(Document.id).where(Document.user_id == self.user_id))
+            document_ids = list(result.scalars().all())
+            
+            if not document_ids:
+                return [] # User has no documents at all!
+
         # 1. Embed the query
         query_embedding = EmbeddingService.generate_embeddings([query])[0]
         
@@ -41,10 +51,8 @@ class ChatService:
         # Get the latest user query
         user_query = request.messages[-1].content
         
-        # Retrieve context chunks
-        chunks = []
-        if request.document_ids:
-            chunks = await self._get_context(request.document_ids, user_query)
+        # Retrieve context chunks (will search all user docs if document_ids is empty)
+        chunks = await self._get_context(request.document_ids, user_query)
             
         # Build the LLM prompt
         system_prompt = self._build_system_prompt(chunks)
@@ -59,7 +67,7 @@ class ChatService:
         
         stream = await self.client.chat.completions.create(
             messages=messages,
-            model="llama3-8b-8192", # Groq's fast Llama 3 model
+            model="openai/gpt-oss-20b", # Updated to a supported model for 2026
             stream=True,
             temperature=0.3
         )
@@ -68,10 +76,8 @@ class ChatService:
             content = chunk.choices[0].delta.content
             if content:
                 self.full_response_text += content
-                # Format exactly as Vercel AI SDK experimental `streamText` expects.
-                # Format: 0:"content"\n
-                encoded = json.dumps(content)
-                yield f'0:{encoded}\n'
+                # Yield raw text directly
+                yield content
 
     async def save_conversation(self, request: ChatRequest):
         from app.models.chat import Conversation, Message

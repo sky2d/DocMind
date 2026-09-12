@@ -31,4 +31,4 @@ async def get_documents(
     service = DocumentService(db)
     
     docs = await service.get_user_documents(user_id)
-    return DocumentListResponse(documents=docs)
+    return {"documents": docs}

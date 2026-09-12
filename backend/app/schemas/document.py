@@ -11,8 +11,8 @@ class DocumentCreate(DocumentBase):
 class DocumentResponse(DocumentBase):
     id: UUID4
     status: str
-    created_at: datetime
-    updated_at: datetime
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     metadata_: Optional[Dict[str, Any]] = None
 
     class Config:

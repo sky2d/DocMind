@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock, Mail, ArrowRight, Loader2 } from "lucide-react";
@@ -14,6 +14,12 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      router.push("/dashboard");
+    }
+  }, [router]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -22,6 +28,7 @@ export default function LoginPage() {
     try {
       const response = await apiClient.post("/auth/login", { email, password });
       localStorage.setItem("token", response.data.access_token);
+      document.cookie = `token=${response.data.access_token}; path=/; max-age=86400`;
       router.push("/dashboard");
     } catch (err: any) {
       setError(err.response?.data?.detail || "An error occurred during login.");
