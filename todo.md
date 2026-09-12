@@ -65,10 +65,10 @@ This document breaks down the implementation of the `rag-project` into logical p
 *Focus: Generating embeddings and storing them in pgvector*
 
 - [ ] Implement Embedding Service using `sentence-transformers` (`all-MiniLM-L6-v2`, 384 dim)
-- [ ] Ensure embedding provider/model is configurable via abstraction
-- [ ] Connect Embedding Service with Chunking Service
-- [ ] Implement pgvector inserts for generated embeddings
-- [ ] Write unit tests for embedding generation
+- [x] Implement embedding service (e.g., HuggingFace `all-MiniLM-L6-v2`)
+- [x] Connect ingestion pipeline to embedding service
+- [x] Store chunks and embeddings into `document_chunks` table (pgvector)
+- [x] Verify vectors are properly inserted and queryableration
 
 ---
 
